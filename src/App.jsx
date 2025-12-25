@@ -251,6 +251,32 @@ export default function App() {
     });
   }
 
+  function toggleFullscreen() {
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    } catch (_e) {}
+  }
+
+  function switchPack(nextId) {
+    setActivePackId(nextId);
+
+    // Reset board on pack switch
+    setUsed({});
+    setDoubleRound(false);
+    setPickingDailyDouble(false);
+    setDailyDoubleKey(null);
+
+    setQuestionOpen(false);
+    setAnswerRevealed(false);
+    setCurrentClue(null);
+    setFinalOpen(false);
+    setFinalAnswerRevealed(false);
+  }
+
   useEffect(
     function () {
       function onKeyDown(e) {
@@ -283,35 +309,26 @@ export default function App() {
     [questionOpen, setupOpen, finalOpen, menuOpen]
   );
 
-  function toggleFullscreen() {
-    try {
-      if (!document.fullscreenElement) {
-        if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
-    } catch (_e) {}
-  }
-
-  function switchPack(nextId) {
-    setActivePackId(nextId);
-
-    // Reset board on pack switch
-    setUsed({});
-    setDoubleRound(false);
-    setPickingDailyDouble(false);
-    setDailyDoubleKey(null);
-
-    setQuestionOpen(false);
-    setAnswerRevealed(false);
-    setCurrentClue(null);
-    setFinalOpen(false);
-    setFinalAnswerRevealed(false);
-  }
-
   return (
     <div className={(snowOn ? "snowOn " : "snowOff ") + "tvShell"}>
       <header className="festiveHeader tvHeaderCompact">
+        {/* NEW: visible shimmering lights strip */}
+        <div className="lightsStrip" aria-hidden="true">
+          <span className="wire" />
+          <span className="bulb b1" />
+          <span className="bulb b2" />
+          <span className="bulb b3" />
+          <span className="bulb b4" />
+          <span className="bulb b5" />
+          <span className="bulb b6" />
+          <span className="bulb b7" />
+          <span className="bulb b8" />
+          <span className="bulb b9" />
+          <span className="bulb b10" />
+          <span className="bulb b11" />
+          <span className="bulb b12" />
+        </div>
+
         <div className="tvHeaderBar">
           <div className="tvHeaderTitle" title={GAME.title}>
             {GAME.title}
@@ -367,53 +384,41 @@ export default function App() {
         </aside>
       </div>
 
+      {/* Menu stays open unless you close it */}
       {menuOpen ? (
         <div className="backdrop" onClick={function () { setMenuOpen(false); }}>
           <div className="menuModal" onClick={function (e) { e.stopPropagation(); }}>
             <div className="menuHeader">
               <div className="menuTitle">Host Menu</div>
-              <button className="btnCompact" onClick={function () { setMenuOpen(false); }}>Close</button>
+              <button className="btnCompact" onClick={function () { setMenuOpen(false); }}>
+                Close
+              </button>
             </div>
 
             <div className="menuBody">
               <div className="menuGrid">
-                <button className="btnPrimary" onClick={function () { newGameKeepTeams(); setMenuOpen(false); }}>
+                <button className="btnPrimary" onClick={function () { newGameKeepTeams(); }}>
                   New Game
                 </button>
-                <button onClick={function () { resetBoardOnly(); setMenuOpen(false); }}>
+                <button onClick={function () { resetBoardOnly(); }}>
                   Reset Board
                 </button>
-                <button className="btnPrimary" onClick={function () { openFinal(); setMenuOpen(false); }}>
+                <button className="btnPrimary" onClick={function () { openFinal(); }}>
                   Final
                 </button>
-                <button onClick={function () { setSetupOpen(true); setMenuOpen(false); }}>
+                <button onClick={function () { setSetupOpen(true); }}>
                   Teams
                 </button>
-                <button onClick={function () { toggleFullscreen(); setMenuOpen(false); }}>
+                <button onClick={function () { toggleFullscreen(); }}>
                   Fullscreen (F)
                 </button>
-                <button
-                  onClick={function () {
-                    setShowPanel(function (v) { return !v; });
-                    setMenuOpen(false);
-                  }}
-                >
+                <button onClick={function () { setShowPanel(function (v) { return !v; }); }}>
                   Panel: {showPanel ? "On" : "Off"} (P)
                 </button>
-                <button
-                  onClick={function () {
-                    setSnowOn(function (v) { return !v; });
-                    setMenuOpen(false);
-                  }}
-                >
+                <button onClick={function () { setSnowOn(function (v) { return !v; }); }}>
                   Snow: {snowOn ? "On" : "Off"}
                 </button>
-                <button
-                  onClick={function () {
-                    startPickDailyDouble();
-                    setMenuOpen(false);
-                  }}
-                >
+                <button onClick={function () { startPickDailyDouble(); }}>
                   Set Daily Double
                 </button>
                 <button
