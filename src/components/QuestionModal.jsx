@@ -10,72 +10,49 @@ export default function QuestionModal(props) {
   function stop(e) { e.stopPropagation(); }
 
   var isDailyDouble = clue.isDailyDouble === true;
-
-  // Guard: require a valid team index before allowing scoring
-  var teamCount = props.teams ? props.teams.length : 0;
-  var teamIdx = safeInt(props.selectedTeamIndex, 0);
-  var teamIdxValid = teamCount > 0 && teamIdx >= 0 && teamIdx < teamCount;
-
-  function selectTeam(idx) {
-    props.onSelectTeam(idx);
-  }
+  var teamSelected = props.selectedTeamIndex !== null;
 
   return (
-    <div className="backdrop" onClick={stop /* disable click-off close */}>
-      <div className="modal modalTV" onClick={stop}>
-        <div className="modalHeader modalHeaderTV">
-          <div className="modalTitleBlock">
-            <div className="title modalTitleTV">
-              {clue.categoryName} — ${clue.value} {isDailyDouble ? "• DAILY DOUBLE" : ""}
+    <div className="backdrop">
+      <div className="modal" onClick={stop}>
+        <div className="modalHeader">
+          <div>
+            <div className="title">
+              {clue.categoryName} — ${clue.value} {isDailyDouble ? "(Daily Double)" : ""}
             </div>
-            <div className="note modalSubTV">
-              Tile {clue.rIndex + 1} / 5
-            </div>
+            <div className="note">Tile {clue.rIndex + 1} of 5</div>
           </div>
-
-          <div className="btnRow modalBtnsTV">
+          <div className="btnRow">
             <button className="btnPrimary" onClick={props.onRevealAnswer}>
-              Reveal
+              Reveal Answer
             </button>
-            <button className="btnDanger" onClick={props.onClose}>
-              Close
-            </button>
+            <button onClick={props.onClose}>Back to Board</button>
           </div>
         </div>
 
-        <div className="modalBody modalBodyTV">
-          <div className="bigQuestion bigQuestionTV">{clue.q}</div>
+        <div className="modalBody">
+          <div className="bigQuestion">{clue.q}</div>
 
           {props.answerRevealed ? (
-            <div className="answerBox answerBoxTV">Answer: {clue.a}</div>
+            <div className="answerBox">Answer: {clue.a}</div>
           ) : null}
 
-          <div className="controlGrid controlGridTV">
-            {/* LEFT: Scoring */}
+          <div className="controlGrid">
             <div className="card sectionCard">
-              <div className="cardHeader cardHeaderTV">
-                <h2>Operator Scoring</h2>
-                <div className="pill pillTV">
-                  Selected:{" "}
-                  <span style={{ color: "var(--gold)" }}>
-                    {teamIdxValid ? props.teams[teamIdx].name : "—"}
-                  </span>
-                </div>
-              </div>
+              <div className="cardHeader"><h2>Scoring</h2></div>
+              <div className="cardBody">
+                <div className="note">Team that answered</div>
 
-              <div className="cardBody cardBodyTV">
-                <div className="note noteTV">1) Select the team that buzzed in</div>
-
-                {/* Big team picker buttons (fast + reduces errors) */}
-                <div className="teamPicker">
+                <div className="teamPickGrid" role="group" aria-label="Select the team that answered">
                   {props.teams.map(function (t, idx) {
-                    var active = idx === teamIdx;
+                    var active = props.selectedTeamIndex === idx;
+                    var cls = "teamPickBtn" + (active ? " teamPickBtnActive" : "");
                     return (
                       <button
-                        key={"tp-" + idx}
-                        className={active ? "teamPickBtn teamPickBtnActive" : "teamPickBtn"}
-                        onClick={function () { selectTeam(idx); }}
+                        key={"teamPick-" + idx}
                         type="button"
+                        className={cls}
+                        onClick={function () { props.onSelectTeam(idx); }}
                       >
                         {t.name}
                       </button>
@@ -83,28 +60,18 @@ export default function QuestionModal(props) {
                   })}
                 </div>
 
-                {/* Dropdown fallback (still useful for many teams) */}
-                <div className="spacer10" />
-                <label className="note noteTV">Or pick from list</label>
-                <select
-                  className="select selectTV"
-                  value={String(teamIdx)}
-                  onChange={function (e) { props.onSelectTeam(safeInt(e.target.value, 0)); }}
-                >
-                  {props.teams.map(function (t, idx) {
-                    return (
-                      <option key={"topt-" + idx} value={String(idx)}>
-                        {t.name}
-                      </option>
-                    );
-                  })}
-                </select>
+                <div style={{ marginTop: 10 }} className={teamSelected ? "pill" : "pill pillWarn"}>
+                  Selected:{" "}
+                  {teamSelected
+                    ? props.teams[props.selectedTeamIndex].name
+                    : "NONE — pick a team to enable scoring"}
+                </div>
 
-                <div className="spacer10" />
-                <div className="note noteTV">2) Confirm/override points if needed</div>
+                <div style={{ height: 12 }} />
 
+                <label className="note">Point value (override if needed)</label>
                 <input
-                  className="input inputTV"
+                  className="input"
                   type="number"
                   step="100"
                   value={String(props.points)}
@@ -113,76 +80,77 @@ export default function QuestionModal(props) {
                   }}
                 />
 
-                <div className="spacer10" />
-                <div className="note noteTV">3) Score the result</div>
+                <div style={{ height: 12 }} />
 
-                <div className="btnRow btnRowTV">
+                <div className="btnRow">
                   <button
                     className="btnGood"
-                    disabled={!teamIdxValid}
+                    disabled={!teamSelected}
                     onClick={function () { props.onScore(+1); }}
-                    type="button"
                   >
-                    Correct (+)
+                    Correct
                   </button>
-
                   <button
                     className="btnDanger"
-                    disabled={!teamIdxValid}
+                    disabled={!teamSelected}
                     onClick={function () { props.onScore(-1); }}
-                    type="button"
                   >
-                    Incorrect (-)
+                    Incorrect
                   </button>
-
                   <button
-                    disabled={!teamIdxValid}
+                    disabled={!teamSelected}
                     onClick={function () { props.onScore(0); }}
-                    type="button"
                   >
                     No Score
                   </button>
+
+                  {/* Optional operator safety */}
+                  <button
+                    type="button"
+                    onClick={function () { props.onSelectTeam(null); }}
+                    disabled={!teamSelected}
+                    title="Clear selected team"
+                  >
+                    Clear Team
+                  </button>
                 </div>
 
-                {isDailyDouble ? (
-                  <div className="note noteTV" style={{ marginTop: 10 }}>
-                    Daily Double: use “Point value” as the wager for the selected team.
-                  </div>
-                ) : null}
+                <div style={{ marginTop: 10 }} className="note">
+                  {isDailyDouble
+                    ? "Daily Double: select team and enter their wager, then mark correct/incorrect."
+                    : "Tip: Pick the team first — scoring is locked until you do."}
+                </div>
               </div>
             </div>
 
-            {/* RIGHT: Round options */}
             <div className="card sectionCard">
-              <div className="cardHeader cardHeaderTV">
-                <h2>Round Options</h2>
-              </div>
-              <div className="cardBody cardBodyTV">
-                <div className="btnRow btnRowTV">
-                  <button onClick={props.onToggleDoubleRound} type="button">
-                    Toggle Double
+              <div className="cardHeader"><h2>Round Options</h2></div>
+              <div className="cardBody">
+                <div className="btnRow">
+                  <button onClick={props.onToggleDoubleRound}>
+                    Toggle Double Jeopardy
                   </button>
-                  <button onClick={props.onStartPickDailyDouble} type="button">
-                    Pick Daily Double
+                  <button onClick={props.onStartPickDailyDouble}>
+                    Pick a Daily Double
                   </button>
                 </div>
 
-                <div className="note noteTV" style={{ marginTop: 10 }}>
+                <div style={{ marginTop: 10 }} className="note">
                   Double Jeopardy doubles tile values. Daily Double lets a team wager a custom amount.
                 </div>
 
-                <div className="pill pillTV" style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 10 }} className="pill">
                   Used tiles: {props.usedCount} / {props.totalCount}
                 </div>
 
-                <div className="note noteTV" style={{ marginTop: 10 }}>
-                  Tip: Use <span className="kbd">Esc</span> only if you truly want to exit.
+                <div style={{ marginTop: 10 }} className="note">
+                  Daily Double: click “Pick a Daily Double” then click any unused tile (host choice).
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   );

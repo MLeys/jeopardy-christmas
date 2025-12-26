@@ -55,6 +55,7 @@ export default function App() {
   var [answerRevealed, setAnswerRevealed] = useState(false);
   var [currentClue, setCurrentClue] = useState(null);
 
+  // IMPORTANT: no default team
   var [selectedTeamIndex, setSelectedTeamIndex] = useState(null);
   var [points, setPoints] = useState(100);
 
@@ -106,6 +107,8 @@ export default function App() {
     setQuestionOpen(false);
     setAnswerRevealed(false);
     setCurrentClue(null);
+    setSelectedTeamIndex(null);
+
     setFinalOpen(false);
     setFinalAnswerRevealed(false);
   }
@@ -115,6 +118,7 @@ export default function App() {
     setQuestionOpen(false);
     setAnswerRevealed(false);
     setCurrentClue(null);
+    setSelectedTeamIndex(null);
   }
 
   function adjustScore(teamIdx, delta) {
@@ -153,12 +157,21 @@ export default function App() {
 
     setPoints(value);
     setAnswerRevealed(false);
+
+    // IMPORTANT: no default team selection
     setSelectedTeamIndex(null);
+
     setQuestionOpen(true);
   }
 
   function scoreCurrent(multiplier) {
     if (!currentClue) return;
+
+    // HARD BLOCK: no scoring unless team is explicitly selected
+    if (selectedTeamIndex === null) {
+      window.alert("Select a team first.");
+      return;
+    }
 
     var teamIdx = selectedTeamIndex;
     var pts = safeInt(points, currentClue.value);
@@ -173,6 +186,7 @@ export default function App() {
     setQuestionOpen(false);
     setAnswerRevealed(false);
     setCurrentClue(null);
+    setSelectedTeamIndex(null);
   }
 
   function startPickDailyDouble() {
@@ -273,6 +287,8 @@ export default function App() {
     setQuestionOpen(false);
     setAnswerRevealed(false);
     setCurrentClue(null);
+    setSelectedTeamIndex(null);
+
     setFinalOpen(false);
     setFinalAnswerRevealed(false);
   }
@@ -287,6 +303,7 @@ export default function App() {
             setQuestionOpen(false);
             setAnswerRevealed(false);
             setCurrentClue(null);
+            setSelectedTeamIndex(null);
           }
           if (setupOpen) setSetupOpen(false);
           if (finalOpen) {
@@ -312,7 +329,6 @@ export default function App() {
   return (
     <div className={(snowOn ? "snowOn " : "snowOff ") + "tvShell"}>
       <header className="festiveHeader tvHeaderCompact">
-        {/* NEW: visible shimmering lights strip */}
         <div className="lightsStrip" aria-hidden="true">
           <span className="wire" />
           <span className="bulb b1" />
@@ -384,7 +400,6 @@ export default function App() {
         </aside>
       </div>
 
-      {/* Menu stays open unless you close it */}
       {menuOpen ? (
         <div className="backdrop" onClick={function () { setMenuOpen(false); }}>
           <div className="menuModal" onClick={function (e) { e.stopPropagation(); }}>
@@ -457,6 +472,7 @@ export default function App() {
           setQuestionOpen(false);
           setAnswerRevealed(false);
           setCurrentClue(null);
+          setSelectedTeamIndex(null);
         }}
         onScore={scoreCurrent}
         onToggleDoubleRound={function () { setDoubleRound(function (v) { return !v; }); }}
