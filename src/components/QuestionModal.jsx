@@ -23,9 +23,6 @@ export default function QuestionModal(props) {
             <div className="note">Tile {clue.rIndex + 1} of 5</div>
           </div>
           <div className="btnRow">
-            <button className="btnPrimary" onClick={props.onRevealAnswer}>
-              Reveal Answer
-            </button>
             <button onClick={props.onClose}>Back to Board</button>
           </div>
         </div>
@@ -60,11 +57,22 @@ export default function QuestionModal(props) {
                   })}
                 </div>
 
+                {/* Primary action in the operator flow */}
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    className="btnPrimary"
+                    onClick={props.onRevealAnswer}
+                    style={{ width: "100%" }}
+                  >
+                    Reveal Answer
+                  </button>
+                </div>
+
                 <div style={{ marginTop: 10 }} className={teamSelected ? "pill" : "pill pillWarn"}>
                   Selected:{" "}
                   {teamSelected
                     ? props.teams[props.selectedTeamIndex].name
-                    : "NONE — pick a team to enable scoring"}
+                    : "NONE — pick a team for Correct/Incorrect"}
                 </div>
 
                 <div style={{ height: 12 }} />
@@ -97,14 +105,12 @@ export default function QuestionModal(props) {
                   >
                     Incorrect
                   </button>
-                  <button
-                    disabled={!teamSelected}
-                    onClick={function () { props.onScore(0); }}
-                  >
+
+                  {/* No Score is allowed without selecting a team */}
+                  <button onClick={function () { props.onScore(0); }}>
                     No Score
                   </button>
 
-                  {/* Optional operator safety */}
                   <button
                     type="button"
                     onClick={function () { props.onSelectTeam(null); }}
@@ -116,9 +122,8 @@ export default function QuestionModal(props) {
                 </div>
 
                 <div style={{ marginTop: 10 }} className="note">
-                  {isDailyDouble
-                    ? "Daily Double: select team and enter their wager, then mark correct/incorrect."
-                    : "Tip: Pick the team first — scoring is locked until you do."}
+                  Tip: If you hit <b>Back to Board</b> without scoring, this tile stays available.
+                  Use <b>No Score</b> to finalize without changing any score.
                 </div>
               </div>
             </div>

@@ -134,17 +134,12 @@ export default function App() {
     var k = keyFor(cIndex, rIndex);
     if (used[k] === true) return;
 
-    setUsed(function (prev) {
-      var next = Object.assign({}, prev);
-      next[k] = true;
-      return next;
-    });
-
     var category = GAME.categories[cIndex];
     var clue = category.clues[rIndex];
     var value = tileValue(rIndex);
     var isDD = dailyDoubleKey === k;
 
+    // IMPORTANT: do NOT mark tile used here
     setCurrentClue({
       cIndex: cIndex,
       rIndex: rIndex,
@@ -157,32 +152,48 @@ export default function App() {
 
     setPoints(value);
     setAnswerRevealed(false);
-
-    // IMPORTANT: no default team selection
     setSelectedTeamIndex(null);
-
     setQuestionOpen(true);
   }
 
-  function scoreCurrent(multiplier) {
+  function markClueUsed(clueObj) {
+    if (!clueObj) return;
+    var k = keyFor(clueObj.cIndex, clueObj.rIndex);
+
+    setUsed(function (prev) {
+      if (prev[k] === true) return prev;
+      var next = Object.assign({}, prev);
+      next[k] = true;
+      return next;
+    });
+  }
+
+  // multiplier: +1 correct, -1 incorrect, 0 no score (finalize without score change)
+  function finalizeClue(multiplier) {
     if (!currentClue) return;
 
-    // HARD BLOCK: no scoring unless team is explicitly selected
-    if (selectedTeamIndex === null) {
+    // Correct/Incorrect requires explicit team selection
+    if (multiplier !== 0 && selectedTeamIndex === null) {
       window.alert("Select a team first.");
       return;
     }
 
-    var teamIdx = selectedTeamIndex;
     var pts = safeInt(points, currentClue.value);
 
-    setTeams(function (prev) {
-      return prev.map(function (t, idx) {
-        if (idx !== teamIdx) return t;
-        return { name: t.name, score: t.score + pts * multiplier };
+    if (multiplier !== 0) {
+      var teamIdx = selectedTeamIndex;
+      setTeams(function (prev) {
+        return prev.map(function (t, idx) {
+          if (idx !== teamIdx) return t;
+          return { name: t.name, score: t.score + pts * multiplier };
+        });
       });
-    });
+    }
 
+    // NOW mark the tile used (explicit finalize action)
+    markClueUsed(currentClue);
+
+    // Close and clear
     setQuestionOpen(false);
     setAnswerRevealed(false);
     setCurrentClue(null);
@@ -474,7 +485,7 @@ export default function App() {
           setCurrentClue(null);
           setSelectedTeamIndex(null);
         }}
-        onScore={scoreCurrent}
+        onScore={finalizeClue}
         onToggleDoubleRound={function () { setDoubleRound(function (v) { return !v; }); }}
         onStartPickDailyDouble={startPickDailyDouble}
       />
