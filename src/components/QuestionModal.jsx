@@ -11,39 +11,84 @@ export default function QuestionModal(props) {
 
   var isDailyDouble = clue.isDailyDouble === true;
 
+  // Guard: require a valid team index before allowing scoring
+  var teamCount = props.teams ? props.teams.length : 0;
+  var teamIdx = safeInt(props.selectedTeamIndex, 0);
+  var teamIdxValid = teamCount > 0 && teamIdx >= 0 && teamIdx < teamCount;
+
+  function selectTeam(idx) {
+    props.onSelectTeam(idx);
+  }
+
   return (
-    <div className="backdrop" onClick={props.onClose}>
-      <div className="modal" onClick={stop}>
-        <div className="modalHeader">
-          <div>
-            <div className="title">
-              {clue.categoryName} — ${clue.value} {isDailyDouble ? "(Daily Double)" : ""}
+    <div className="backdrop" onClick={stop /* disable click-off close */}>
+      <div className="modal modalTV" onClick={stop}>
+        <div className="modalHeader modalHeaderTV">
+          <div className="modalTitleBlock">
+            <div className="title modalTitleTV">
+              {clue.categoryName} — ${clue.value} {isDailyDouble ? "• DAILY DOUBLE" : ""}
             </div>
-            <div className="note">Tile {clue.rIndex + 1} of 5</div>
+            <div className="note modalSubTV">
+              Tile {clue.rIndex + 1} / 5
+            </div>
           </div>
-          <div className="btnRow">
+
+          <div className="btnRow modalBtnsTV">
             <button className="btnPrimary" onClick={props.onRevealAnswer}>
-              Reveal Answer
+              Reveal
             </button>
-            <button onClick={props.onClose}>Back to Board</button>
+            <button className="btnDanger" onClick={props.onClose}>
+              Close
+            </button>
           </div>
         </div>
 
-        <div className="modalBody">
-          <div className="bigQuestion">{clue.q}</div>
+        <div className="modalBody modalBodyTV">
+          <div className="bigQuestion bigQuestionTV">{clue.q}</div>
 
           {props.answerRevealed ? (
-            <div className="answerBox">Answer: {clue.a}</div>
+            <div className="answerBox answerBoxTV">Answer: {clue.a}</div>
           ) : null}
 
-          <div className="controlGrid">
+          <div className="controlGrid controlGridTV">
+            {/* LEFT: Scoring */}
             <div className="card sectionCard">
-              <div className="cardHeader"><h2>Scoring</h2></div>
-              <div className="cardBody">
-                <label className="note">Team that answered</label>
+              <div className="cardHeader cardHeaderTV">
+                <h2>Operator Scoring</h2>
+                <div className="pill pillTV">
+                  Selected:{" "}
+                  <span style={{ color: "var(--gold)" }}>
+                    {teamIdxValid ? props.teams[teamIdx].name : "—"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="cardBody cardBodyTV">
+                <div className="note noteTV">1) Select the team that buzzed in</div>
+
+                {/* Big team picker buttons (fast + reduces errors) */}
+                <div className="teamPicker">
+                  {props.teams.map(function (t, idx) {
+                    var active = idx === teamIdx;
+                    return (
+                      <button
+                        key={"tp-" + idx}
+                        className={active ? "teamPickBtn teamPickBtnActive" : "teamPickBtn"}
+                        onClick={function () { selectTeam(idx); }}
+                        type="button"
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Dropdown fallback (still useful for many teams) */}
+                <div className="spacer10" />
+                <label className="note noteTV">Or pick from list</label>
                 <select
-                  className="select"
-                  value={String(props.selectedTeamIndex)}
+                  className="select selectTV"
+                  value={String(teamIdx)}
                   onChange={function (e) { props.onSelectTeam(safeInt(e.target.value, 0)); }}
                 >
                   {props.teams.map(function (t, idx) {
@@ -55,11 +100,11 @@ export default function QuestionModal(props) {
                   })}
                 </select>
 
-                <div style={{ height: 10 }} />
+                <div className="spacer10" />
+                <div className="note noteTV">2) Confirm/override points if needed</div>
 
-                <label className="note">Point value (override if needed)</label>
                 <input
-                  className="input"
+                  className="input inputTV"
                   type="number"
                   step="100"
                   value={String(props.points)}
@@ -68,56 +113,76 @@ export default function QuestionModal(props) {
                   }}
                 />
 
-                <div style={{ height: 10 }} />
+                <div className="spacer10" />
+                <div className="note noteTV">3) Score the result</div>
 
-                <div className="btnRow">
-                  <button className="btnGood" onClick={function () { props.onScore(+1); }}>
+                <div className="btnRow btnRowTV">
+                  <button
+                    className="btnGood"
+                    disabled={!teamIdxValid}
+                    onClick={function () { props.onScore(+1); }}
+                    type="button"
+                  >
                     Correct (+)
                   </button>
-                  <button className="btnDanger" onClick={function () { props.onScore(-1); }}>
+
+                  <button
+                    className="btnDanger"
+                    disabled={!teamIdxValid}
+                    onClick={function () { props.onScore(-1); }}
+                    type="button"
+                  >
                     Incorrect (-)
                   </button>
-                  <button onClick={function () { props.onScore(0); }}>
+
+                  <button
+                    disabled={!teamIdxValid}
+                    onClick={function () { props.onScore(0); }}
+                    type="button"
+                  >
                     No Score
                   </button>
                 </div>
 
-                <div style={{ marginTop: 10 }} className="note">
-                  {isDailyDouble
-                    ? "Daily Double: select team and enter their wager, then mark correct/incorrect."
-                    : ""}
-                </div>
+                {isDailyDouble ? (
+                  <div className="note noteTV" style={{ marginTop: 10 }}>
+                    Daily Double: use “Point value” as the wager for the selected team.
+                  </div>
+                ) : null}
               </div>
             </div>
 
+            {/* RIGHT: Round options */}
             <div className="card sectionCard">
-              <div className="cardHeader"><h2>Round Options</h2></div>
-              <div className="cardBody">
-                <div className="btnRow">
-                  <button onClick={props.onToggleDoubleRound}>
-                    Toggle Double Jeopardy
+              <div className="cardHeader cardHeaderTV">
+                <h2>Round Options</h2>
+              </div>
+              <div className="cardBody cardBodyTV">
+                <div className="btnRow btnRowTV">
+                  <button onClick={props.onToggleDoubleRound} type="button">
+                    Toggle Double
                   </button>
-                  <button onClick={props.onStartPickDailyDouble}>
-                    Pick a Daily Double
+                  <button onClick={props.onStartPickDailyDouble} type="button">
+                    Pick Daily Double
                   </button>
                 </div>
 
-                <div style={{ marginTop: 10 }} className="note">
+                <div className="note noteTV" style={{ marginTop: 10 }}>
                   Double Jeopardy doubles tile values. Daily Double lets a team wager a custom amount.
                 </div>
 
-                <div style={{ marginTop: 10 }} className="pill">
+                <div className="pill pillTV" style={{ marginTop: 12 }}>
                   Used tiles: {props.usedCount} / {props.totalCount}
                 </div>
 
-                <div style={{ marginTop: 10 }} className="note">
-                  Daily Double: click “Pick a Daily Double” then click any unused tile (host choice).
+                <div className="note noteTV" style={{ marginTop: 10 }}>
+                  Tip: Use <span className="kbd">Esc</span> only if you truly want to exit.
                 </div>
               </div>
             </div>
           </div>
-
         </div>
+
       </div>
     </div>
   );

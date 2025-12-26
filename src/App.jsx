@@ -55,7 +55,7 @@ export default function App() {
   var [answerRevealed, setAnswerRevealed] = useState(false);
   var [currentClue, setCurrentClue] = useState(null);
 
-  var [selectedTeamIndex, setSelectedTeamIndex] = useState(0);
+  var [selectedTeamIndex, setSelectedTeamIndex] = useState(null);
   var [points, setPoints] = useState(100);
 
   var [finalOpen, setFinalOpen] = useState(false);
@@ -153,7 +153,7 @@ export default function App() {
 
     setPoints(value);
     setAnswerRevealed(false);
-    setSelectedTeamIndex(0);
+    setSelectedTeamIndex(null);
     setQuestionOpen(true);
   }
 

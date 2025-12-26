@@ -18,8 +18,8 @@ body {
 button, select, input { font: inherit; }
 
 :focus-visible {
-  outline: 2px solid rgba(255, 210, 138, 0.8);
-  outline-offset: 2px;
+  outline: 3px solid rgba(255, 210, 138, 0.9);
+  outline-offset: 3px;
 }
 
 /* ===== Christmas Theme Tokens ===== */
@@ -27,8 +27,6 @@ button, select, input { font: inherit; }
   /* North Pole night + evergreen */
   --night0: #050913;
   --night1: #08122a;
-  --ever0: #06140e;
-  --ever1: #0a2218;
 
   --text: rgba(246, 255, 249, 0.96);
   --muted: rgba(246, 255, 249, 0.70);
@@ -61,6 +59,25 @@ button, select, input { font: inherit; }
   --r14: 14px;
   --r16: 16px;
 
+  /* =========
+     TV FONT SCALE (BIGGER)
+     This is the main knob.
+     ========= */
+  --tv: clamp(1.60, 1.15vw + 1.05vh, 3.20);
+
+  /* =========
+     Derived type ramp (BIGGER)
+     ========= */
+  --fs-xs:  clamp(14px, calc(10px * var(--tv)), 28px);
+  --fs-sm:  clamp(16px, calc(12px * var(--tv)), 34px);
+  --fs-md:  clamp(18px, calc(14px * var(--tv)), 40px);
+  --fs-lg:  clamp(22px, calc(18px * var(--tv)), 52px);
+  --fs-xl:  clamp(30px, calc(24px * var(--tv)), 70px);
+  --fs-2xl: clamp(40px, calc(32px * var(--tv)), 92px);
+  --fs-3xl: clamp(54px, calc(44px * var(--tv)), 124px);
+  --fs-4xl: clamp(66px, calc(56px * var(--tv)), 150px);
+  --fs-5xl: clamp(78px, calc(68px * var(--tv)), 180px);
+
   /* Background */
   --bg:
     radial-gradient(900px 520px at 15% 0%, rgba(255, 210, 138, 0.14) 0%, rgba(0,0,0,0) 60%),
@@ -76,6 +93,7 @@ body::after {
   inset: 0;
   pointer-events: none;
   opacity: 0.10;
+  z-index: 0; /* ADD THIS */
   background:
     repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 46px),
     repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 46px),
